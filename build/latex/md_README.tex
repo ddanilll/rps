@@ -1,0 +1,228 @@
+Лабораторная работа\+: TCP клиент-\/серверное приложение с неблокирующим вводом-\/выводом и {\ttfamily poll(2)}.\hypertarget{md_README_autotoc_md1}{}\doxysection{Что реализовано}\label{md_README_autotoc_md1}
+Сервер хранит для каждого пользователя три переменные {\ttfamily X}, {\ttfamily Y}, {\ttfamily Z}. Клиент подключается к серверу, отправляет имя пользователя, затем команды\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{X = 10 + 5}
+\DoxyCodeLine{Y = X * 2}
+\DoxyCodeLine{вычислить Y / 3}
+\DoxyCodeLine{показать}
+
+\end{DoxyCode}
+
+
+Поддерживаются\+:
+
+
+\begin{DoxyItemize}
+\item целые числа;
+\item переменные {\ttfamily X}, {\ttfamily Y}, {\ttfamily Z};
+\item операции {\ttfamily +}, {\ttfamily -\/}, {\ttfamily $\ast$}, {\ttfamily /};
+\item скобки;
+\item унарный минус, например {\ttfamily X = -\/5}.
+\end{DoxyItemize}
+
+Сервер проверяет корректность выражения, вычисляет результат и отвечает числом или понятным сообщением об ошибке.
+
+Значения переменных сохраняются для каждого пользователя в файле {\ttfamily calc\+\_\+users.\+db}, поэтому после переподключения пользователь видит свои старые значения.\hypertarget{md_README_autotoc_md2}{}\doxysection{Сетевой протокол}\label{md_README_autotoc_md2}
+Протокол текстовый, поверх TCP. Одно сообщение — одна строка, завершенная {\ttfamily \textbackslash{}n}.\hypertarget{md_README_autotoc_md3}{}\doxysubsection{Подключение}\label{md_README_autotoc_md3}
+
+\begin{DoxyEnumerate}
+\item Клиент открывает TCP-\/соединение.
+\item Сервер отправляет\+: 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{HELLO enter username}
+
+\end{DoxyCode}
+
+\item Клиент отправляет имя пользователя\+: 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{ivan}
+
+\end{DoxyCode}
+
+\item Сервер отвечает\+: 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{OK user ivan X=0 Y=0 Z=0}
+
+\end{DoxyCode}
+
+\end{DoxyEnumerate}\hypertarget{md_README_autotoc_md4}{}\doxysubsection{Команды пользователя}\label{md_README_autotoc_md4}
+\hypertarget{md_README_autotoc_md5}{}\doxysubsubsection{Присваивание}\label{md_README_autotoc_md5}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{X = 2 + 3 * 4}
+
+\end{DoxyCode}
+
+
+Ответ\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{OK X = 14}
+
+\end{DoxyCode}
+\hypertarget{md_README_autotoc_md6}{}\doxysubsubsection{Вычисление без изменения переменных}\label{md_README_autotoc_md6}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{вычислить X + Y / 2}
+
+\end{DoxyCode}
+
+
+Ответ\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{OK 20}
+
+\end{DoxyCode}
+
+
+Также поддерживается английский вариант\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{calc X + Y / 2}
+
+\end{DoxyCode}
+\hypertarget{md_README_autotoc_md7}{}\doxysubsubsection{Показать переменные}\label{md_README_autotoc_md7}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{показать}
+
+\end{DoxyCode}
+
+
+Ответ\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{OK X=14 Y=0 Z=0}
+
+\end{DoxyCode}
+
+
+Также поддерживается\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{show}
+
+\end{DoxyCode}
+\hypertarget{md_README_autotoc_md8}{}\doxysubsubsection{Выход}\label{md_README_autotoc_md8}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{выход}
+
+\end{DoxyCode}
+
+
+или
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{quit}
+
+\end{DoxyCode}
+\hypertarget{md_README_autotoc_md9}{}\doxysubsection{Ошибки}\label{md_README_autotoc_md9}
+Примеры ответов\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{ERR неизвестная команда}
+\DoxyCodeLine{ERR деление на ноль}
+\DoxyCodeLine{ERR ожидался операнд}
+\DoxyCodeLine{ERR неизвестная переменная: A}
+
+\end{DoxyCode}
+\hypertarget{md_README_autotoc_md10}{}\doxysubsection{Режим тестирования производительности}\label{md_README_autotoc_md10}
+Для измерения сетевой части без вычислений предусмотрена команда\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{PING}
+
+\end{DoxyCode}
+
+
+Сервер отвечает\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{PONG}
+
+\end{DoxyCode}
+
+
+Эта команда не запускает парсер выражений и не меняет переменные.
+
+Клиентский режим нагрузки\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{./netcalc client 127.0.0.1 4321 -\/-\/perf 100000}
+
+\end{DoxyCode}
+
+
+Клиент отправит 100000 команд {\ttfamily PING} и покажет время, запросы в секунду и среднюю задержку.\hypertarget{md_README_autotoc_md11}{}\doxysection{Сборка}\label{md_README_autotoc_md11}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{mkdir build}
+\DoxyCodeLine{cd build}
+\DoxyCodeLine{cmake ..}
+\DoxyCodeLine{cmake -\/-\/build .}
+
+\end{DoxyCode}
+\hypertarget{md_README_autotoc_md12}{}\doxysection{Запуск}\label{md_README_autotoc_md12}
+В одном терминале\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{./netcalc server 4321}
+
+\end{DoxyCode}
+
+
+В другом терминале\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{./netcalc client 127.0.0.1 4321}
+
+\end{DoxyCode}
+\hypertarget{md_README_autotoc_md13}{}\doxysection{Архитектура}\label{md_README_autotoc_md13}
+Программа состоит из четырех основных частей\+:
+
+
+\begin{DoxyItemize}
+\item {\ttfamily main.\+cpp} — разбор аргументов командной строки;
+\item {\ttfamily server.\+cpp} — TCP-\/сервер, неблокирующие сокеты, {\ttfamily poll};
+\item {\ttfamily client.\+cpp} — консольный клиент;
+\item {\ttfamily expression.\+cpp} — парсер и вычислитель арифметических выражений.
+\end{DoxyItemize}
+
+Сервер является однопроцессным и однопоточным. Он не создает процесс или поток на каждого клиента. Вместо этого все сокеты переводятся в неблокирующий режим, а системный вызов {\ttfamily poll(2)} сообщает, какой сокет сейчас готов к чтению или записи.\hypertarget{md_README_autotoc_md14}{}\doxysection{Пример работы}\label{md_README_autotoc_md14}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\$ ./netcalc client 127.0.0.1 4321}
+\DoxyCodeLine{SERVER: HELLO enter username}
+\DoxyCodeLine{Введите имя пользователя: anna}
+\DoxyCodeLine{SERVER: OK user anna X=0 Y=0 Z=0}
+\DoxyCodeLine{}
+\DoxyCodeLine{> X = 7}
+\DoxyCodeLine{SERVER: OK X = 7}
+\DoxyCodeLine{}
+\DoxyCodeLine{> Y = X * 6}
+\DoxyCodeLine{SERVER: OK Y = 42}
+\DoxyCodeLine{}
+\DoxyCodeLine{> вычислить (Y -\/ X) / 5}
+\DoxyCodeLine{SERVER: OK 7}
+\DoxyCodeLine{}
+\DoxyCodeLine{> показать}
+\DoxyCodeLine{SERVER: OK X=7 Y=42 Z=0}
+
+\end{DoxyCode}
+ 

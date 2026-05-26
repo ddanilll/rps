@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/netcalc.dir/src/main.cpp.o CMakeFiles/netcalc.dir/src/server.cpp.o CMakeFiles/netcalc.dir/src/client.cpp.o CMakeFiles/netcalc.dir/src/expression.cpp.o -o netcalc 
